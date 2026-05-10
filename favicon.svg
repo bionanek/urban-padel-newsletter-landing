@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <rect width="64" height="64" fill="#D4FF3A"></rect>
+  <g transform="translate(32 36)">
+    <text x="-9" y="0" font-family="&#39;Archivo Black&#39;,&#39;Arial Black&#39;,Impact,sans-serif" font-weight="900" font-size="26" fill="#0D0D0D" text-anchor="middle" letter-spacing="-1">U</text>
+    <text x="9" y="0" font-family="&#39;Archivo Black&#39;,&#39;Arial Black&#39;,Impact,sans-serif" font-weight="900" font-size="26" fill="#0D0D0D" text-anchor="middle" letter-spacing="-1">P</text>
+    <rect x="-1.5" y="-22" width="3" height="26" fill="#FF2E6A" transform="skewX(-14)"></rect>
+  </g>
+</svg>
