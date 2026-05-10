@@ -1,0 +1,174 @@
+---
+interface Props {
+  latestIssueNumber?: string;
+}
+const { latestIssueNumber = '016' } = Astro.props;
+---
+
+<footer class="footer">
+  <div class="footer-inner">
+    <div class="big">
+      Do zobaczenia<br />
+      na <span class="mg">korcie.</span>
+    </div>
+
+    <div class="footer-grid">
+      <div>
+        <h4>Newsletter</h4>
+        <p>UrbanPadel Weekly to cotygodniowy mail o polskiej scenie padla. Bez reklam, bez partnerów, bez clickbaitu.</p>
+      </div>
+      <div>
+        <h4>Linki</h4>
+        <ul>
+          <li><a href="#subscribe">Zapisz się</a></li>
+          <li><a href="#archive">Archiwum wydań</a></li>
+          <li><a href="#o-nas">O projekcie</a></li>
+
+        </ul>
+      </div>
+      <div>
+        <h4>Dołącz</h4>
+        <p>Jeszcze nie subskrybujesz? Dołącz do czytelników - jeden mail, zero spamu.</p>
+        <a class="cta-btn" href="#subscribe">Zapisz się →</a>
+      </div>
+    </div>
+
+    <div class="footer-bottom">
+      <span>urbanpadel.pl <span class="mg">//</span> Newsletter '26 <span class="mg">//</span> Wyd. № {latestIssueNumber}</span>
+      <span>by UrbanPadel <span class="mg">♥</span> PL</span>
+    </div>
+  </div>
+</footer>
+
+<style>
+  .footer {
+    background: var(--acid);
+    color: var(--bg);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .footer-inner {
+    max-width: 980px;
+    margin: 0 auto;
+    padding: 48px 24px 28px;
+  }
+
+  .big {
+    font-family: 'Archivo Black', sans-serif;
+    font-size: clamp(60px, 11vw, 104px);
+    line-height: .88;
+    letter-spacing: -.04em;
+    text-transform: uppercase;
+    margin: 0 0 24px;
+  }
+
+  .big .mg {
+    color: var(--white);
+    background: var(--bg);
+    padding: 0 10px 4px;
+    display: inline-block;
+    transform: skewX(-6deg);
+  }
+
+  .footer-grid {
+    display: grid;
+    grid-template-columns: 1.2fr 1fr 1fr;
+    gap: 32px;
+    padding-top: 22px;
+    border-top: 2px solid var(--bg);
+  }
+
+  h4 {
+    font-family: 'Archivo Black', sans-serif;
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    margin: 0 0 10px;
+    color: var(--bg);
+  }
+
+  p {
+    margin: 0 0 10px;
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 14px;
+    line-height: 1.5;
+    color: var(--bg);
+    max-width: 38ch;
+  }
+
+  ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    font-family: 'VT323', monospace;
+    font-size: 17px;
+    line-height: 1.6;
+    color: var(--bg);
+    letter-spacing: .04em;
+  }
+
+  ul li a {
+    color: var(--bg);
+    text-decoration: none;
+  }
+
+  ul li a:hover {
+    text-decoration: underline;
+    text-decoration-color: var(--magenta);
+    text-underline-offset: 3px;
+  }
+
+  ul li::before {
+    content: "▸ ";
+    color: var(--magenta);
+    font-weight: 700;
+  }
+
+  .cta-btn {
+    display: inline-block;
+    margin-top: 10px;
+    background: var(--bg);
+    color: var(--acid);
+    padding: 10px 18px;
+    font-family: 'Archivo Black', sans-serif;
+    font-size: 15px;
+    text-transform: uppercase;
+    letter-spacing: .05em;
+    text-decoration: none;
+  }
+
+  .cta-btn:hover {
+    background: var(--magenta);
+    color: var(--white);
+  }
+
+  .footer-bottom {
+    margin-top: 32px;
+    padding-top: 18px;
+    border-top: 2px solid var(--bg);
+    font-family: 'VT323', monospace;
+    font-size: 16px;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px;
+    color: var(--bg);
+  }
+
+  .footer-bottom .mg {
+    color: var(--magenta);
+  }
+
+  @media (max-width: 720px) {
+    .footer-inner {
+      padding: 36px 16px 22px;
+    }
+
+    .footer-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

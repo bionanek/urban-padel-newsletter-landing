@@ -1,0 +1,203 @@
+---
+import type { Issue } from '../lib/buttondown';
+
+interface Props {
+  issue: Issue;
+}
+const { issue } = Astro.props;
+const numStr = issue.number.toString().padStart(3, '0');
+---
+
+<a
+  href={`/issues/${issue.slug}`}
+  class:list={['issue-card', { 'is-latest': issue.isLatest }]}
+>
+  <div class="bleed-n" aria-hidden="true">{issue.number}</div>
+
+  <div class="card-head">
+    <span class="issue-label">ISSUE.{numStr} // WK.{issue.weekTag}</span>
+    <span class:list={['badge', issue.isLatest ? 'badge-latest' : 'badge-archive']}>
+      {issue.isLatest ? 'Najnowsze' : 'Archiwum'}
+    </span>
+  </div>
+
+  <h3 class="card-title">{issue.title}</h3>
+  {issue.description && <p class="card-desc">{issue.description}</p>}
+
+  {issue.topics.length > 0 && (
+    <div class="topics">
+      {issue.topics.map((topic, i) => (
+        <span class:list={['topic', { hot: i === 0 }]}>{topic}</span>
+      ))}
+    </div>
+  )}
+
+  <div class="card-foot">
+    <span class="date">{issue.dateRange}</span>
+    <span class="read">Czytaj wydanie →</span>
+  </div>
+</a>
+
+<style>
+  .issue-card {
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    background: var(--bg-2);
+    border: 1px solid var(--concrete);
+    padding: 28px 24px 22px;
+    text-decoration: none;
+    color: inherit;
+    transition: transform .15s ease, border-color .15s ease;
+    cursor: pointer;
+  }
+
+  .issue-card:hover {
+    border-color: var(--acid);
+    transform: translate(-2px, -2px);
+  }
+
+  .issue-card:hover .bleed-n {
+    -webkit-text-stroke-color: var(--acid);
+  }
+
+  .issue-card.is-latest {
+    border-color: var(--acid);
+    background: linear-gradient(135deg, var(--bg-2) 70%, rgba(212, 255, 58, 0.06) 100%);
+  }
+
+  .bleed-n {
+    position: absolute;
+    top: -24px;
+    right: -8px;
+    font-family: 'Archivo Black', sans-serif;
+    font-size: 150px;
+    line-height: 1;
+    color: transparent;
+    -webkit-text-stroke: 1.5px var(--concrete);
+    letter-spacing: -.04em;
+    pointer-events: none;
+    user-select: none;
+    z-index: 0;
+    transition: -webkit-text-stroke-color .15s ease;
+  }
+
+  .card-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 14px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .issue-label {
+    font-family: 'VT323', monospace;
+    font-size: 14px;
+    color: var(--fog);
+    text-transform: uppercase;
+    letter-spacing: .1em;
+    padding-top: 2px;
+  }
+
+  .badge {
+    font-family: 'Archivo Black', sans-serif;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+    padding: 4px 8px 5px;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  .badge-latest {
+    background: var(--magenta);
+    color: var(--white);
+    display: inline-block;
+    transform: rotate(-2deg);
+  }
+
+  .badge-archive {
+    border: 1px solid var(--concrete);
+    color: var(--fog);
+  }
+
+  .card-title {
+    font-family: 'Archivo Black', sans-serif;
+    font-size: 22px;
+    line-height: 1.2;
+    color: var(--white);
+    letter-spacing: -.01em;
+    margin: 0 0 10px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .card-desc {
+    font-size: 14px;
+    line-height: 1.5;
+    color: var(--chalk);
+    margin: 0 0 14px;
+    position: relative;
+    z-index: 1;
+    flex: 1;
+  }
+
+  .topics {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 16px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .topic {
+    font-family: 'VT323', monospace;
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    padding: 3px 8px 4px;
+    border: 1px solid var(--concrete);
+    color: var(--fog);
+  }
+
+  .topic.hot {
+    border-color: var(--acid);
+    color: var(--acid);
+  }
+
+  .card-foot {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: auto;
+    border-top: 1px solid var(--concrete);
+    padding-top: 12px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .date {
+    font-family: 'VT323', monospace;
+    font-size: 14px;
+    color: var(--fog);
+    letter-spacing: .06em;
+    text-transform: uppercase;
+  }
+
+  .read {
+    font-family: 'VT323', monospace;
+    font-size: 14px;
+    color: var(--acid);
+    letter-spacing: .06em;
+    text-transform: uppercase;
+  }
+
+  .issue-card:hover .read {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+</style>

@@ -1,0 +1,98 @@
+---
+---
+<nav class="nav">
+  <div class="nav-inner">
+    <a href="/" class="brand">
+      <span class="dot"></span>UrbanPadel
+      <span class="domain">/ urbanpadel.pl</span>
+    </a>
+    <ul>
+      <li><a href="/#subscribe" class="active">Zapisz się</a></li>
+      <li><a href="/#archive">Archiwum</a></li>
+      <li><a href="/#o-nas">O newsletterze</a></li>
+
+    </ul>
+  </div>
+</nav>
+
+<style>
+  .nav {
+    background: var(--bg);
+    border-bottom: 1px solid var(--concrete);
+  }
+
+  .nav-inner {
+    max-width: 980px;
+    margin: 0 auto;
+    padding: 10px 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-family: 'VT323', monospace;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    font-size: 16px;
+  }
+
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--white);
+    font-family: 'Archivo Black', sans-serif;
+    font-size: 15px;
+    letter-spacing: .02em;
+    text-decoration: none;
+  }
+
+  .dot {
+    width: 10px;
+    height: 10px;
+    background: var(--acid);
+    display: inline-block;
+    transform: rotate(45deg);
+    flex-shrink: 0;
+  }
+
+  .domain {
+    color: var(--fog);
+    font-family: 'VT323', monospace;
+    font-size: 16px;
+    letter-spacing: .06em;
+    font-weight: 400;
+  }
+
+  ul {
+    list-style: none;
+    display: flex;
+    gap: 22px;
+  }
+
+  a {
+    color: var(--chalk);
+    text-decoration: none;
+  }
+
+  a:hover {
+    color: var(--acid);
+  }
+
+  a.active {
+    color: var(--acid);
+    text-decoration: underline;
+    text-decoration-color: var(--magenta);
+    text-underline-offset: 4px;
+  }
+
+  @media (max-width: 720px) {
+    .nav-inner {
+      padding: 10px 16px;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    ul {
+      gap: 14px;
+    }
+  }
+</style>

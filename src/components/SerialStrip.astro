@@ -1,0 +1,32 @@
+---
+interface Props {
+  latestIssueNumber?: string;
+}
+const { latestIssueNumber = '-' } = Astro.props;
+---
+<div class="serial">
+  <div class="serial-inner">
+    <span>URBANPADEL.PL // NEWSLETTER</span>
+    <span>Wyd. cotygodniowe · Poniedziałki · № {latestIssueNumber}</span>
+  </div>
+</div>
+
+<style>
+  .serial {
+    background: var(--acid);
+    color: var(--bg);
+    font-family: 'VT323', monospace;
+    font-size: 16px;
+    letter-spacing: .05em;
+    text-transform: uppercase;
+    border-bottom: 2px solid var(--bg);
+  }
+
+  .serial-inner {
+    max-width: 980px;
+    margin: 0 auto;
+    padding: 6px 20px;
+    display: flex;
+    justify-content: space-between;
+  }
+</style>

@@ -1,0 +1,424 @@
+---
+interface Props { hidePerks?: boolean; }
+const { hidePerks = false } = Astro.props;
+---
+<section class="subscribe" id="subscribe">
+  <div class="sub-inner">
+    <div class="subscribe-label">Zapisz się / subscribe</div>
+
+    <h2>
+      Cały polski padel <span class="sw">w jednym mailu,</span>
+      <span class="sw-mg">co poniedziałek</span>.
+    </h2>
+
+    <p class="sub">
+      Rankingi, nowe kluby, turnieje FIP, transfery, ceny kortów i wydarzenia - zebrane w jedną porcję
+      czytaną przy kawie. Bez spamu, bez clickbaitu.
+    </p>
+
+    <form class="sub-form" id="subForm" novalidate>
+      <div class="sub-row">
+        <input type="email" id="subEmail" placeholder="twój@email.pl" autocomplete="email" required />
+        <button type="submit">Zapisz mnie</button>
+      </div>
+      <label class="gdpr-label">
+        <input type="checkbox" id="subGdpr" required />
+        <span>Akceptuję <a href="/polityka-prywatnosci">politykę prywatności</a></span>
+      </label>
+    </form>
+
+    <div class="sub-error" id="subError"></div>
+
+    <div class="sub-meta">
+      <span><span class="chk">✓</span> Raz w tygodniu, same konkrety</span>
+      <span class="sep">//</span>
+      <span><span class="chk">✓</span> Wypisujesz się jednym klikiem</span>
+      <span class="sep">//</span>
+      <span><span class="chk">✓</span> Żadnego spamu od partnerów</span>
+    </div>
+
+    <div class="sub-success" id="subSuccess"></div>
+
+    {!hidePerks && <div class="perks">
+      <div class="cell">
+        <span class="n">~7 min</span>
+        <span class="l">Czas czytania</span>
+      </div>
+      <div class="cell">
+        <span class="n">8–12</span>
+        <span class="l">Newsów w wydaniu</span>
+      </div>
+      <div class="cell">
+        <span class="n">52×</span>
+        <span class="l">Maile w roku</span>
+      </div>
+    </div>}
+  </div>
+</section>
+
+<style>
+  .subscribe {
+    background: var(--bg-2);
+    border-bottom: 2px solid var(--acid);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .subscribe::before {
+    content: '';
+    position: absolute;
+    top: -40px;
+    left: -40px;
+    width: 200px;
+    height: 200px;
+    background: repeating-linear-gradient(
+      45deg,
+      transparent 0 14px,
+      rgba(212, 255, 58, .05) 14px 15px
+    );
+    pointer-events: none;
+  }
+
+  .sub-inner {
+    max-width: 980px;
+    margin: 0 auto;
+    padding: 44px 24px;
+    position: relative;
+  }
+
+  .subscribe-label {
+    font-family: 'VT323', monospace;
+    font-size: 16px;
+    color: var(--acid);
+    text-transform: uppercase;
+    letter-spacing: .12em;
+    margin-bottom: 14px;
+  }
+
+  .subscribe-label::before {
+    content: ">> ";
+    color: var(--magenta);
+  }
+
+  h2 {
+    font-family: 'Archivo Black', sans-serif;
+    font-size: clamp(40px, 6.5vw, 68px);
+    line-height: .92;
+    letter-spacing: -.03em;
+    color: var(--white);
+    margin: 0 0 14px;
+    text-transform: uppercase;
+    text-wrap: balance;
+  }
+
+  .sw {
+    background: var(--acid);
+    color: var(--bg);
+    padding: 2px 10px 5px;
+    display: inline-block;
+    transform: skewX(-6deg);
+  }
+
+  .sw-mg {
+    background: var(--magenta);
+    color: var(--white);
+    padding: 2px 10px 5px;
+    display: inline-block;
+    transform: skewX(-6deg);
+  }
+
+  p.sub {
+    font-size: 17px;
+    line-height: 1.55;
+    color: var(--chalk);
+    max-width: 58ch;
+    margin: 0 0 26px;
+  }
+
+  .sub-form {
+    max-width: 560px;
+    margin-bottom: 16px;
+  }
+
+  .sub-row {
+    display: flex;
+    gap: 0;
+    border: 2px solid var(--acid);
+    background: var(--bg);
+  }
+
+  .sub-row.error {
+    border-color: var(--magenta);
+  }
+
+  .sub-form input[type=email] {
+    flex: 1;
+    background: transparent;
+    border: none;
+    outline: none;
+    color: var(--white);
+    font-family: 'VT323', monospace;
+    font-size: 20px;
+    letter-spacing: .04em;
+    padding: 14px 16px;
+    min-width: 0;
+  }
+
+  .sub-form input[type=email]::placeholder {
+    color: var(--fog);
+    text-transform: uppercase;
+  }
+
+  .sub-form button {
+    background: var(--acid);
+    color: var(--bg);
+    border: none;
+    font-family: 'Archivo Black', sans-serif;
+    font-size: 15px;
+    text-transform: uppercase;
+    letter-spacing: .05em;
+    padding: 0 22px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    white-space: nowrap;
+    border-left: 2px solid var(--acid);
+  }
+
+  .sub-form button::after {
+    content: "→";
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-weight: 700;
+  }
+
+  .sub-form button:hover {
+    background: var(--magenta);
+    color: var(--white);
+    border-left-color: var(--magenta);
+  }
+
+  .gdpr-label {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    margin-top: 10px;
+    cursor: pointer;
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 13px;
+    color: var(--fog);
+    letter-spacing: .02em;
+    line-height: 1.4;
+  }
+
+  .gdpr-label input[type=checkbox] {
+    margin-top: 2px;
+    flex-shrink: 0;
+    accent-color: var(--acid);
+    width: 14px;
+    height: 14px;
+    cursor: pointer;
+  }
+
+  .gdpr-label a {
+    color: var(--acid);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+
+  .sub-error {
+    display: none;
+    font-family: 'VT323', monospace;
+    font-size: 16px;
+    color: var(--magenta);
+    margin-top: 8px;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+    max-width: 560px;
+  }
+
+  .sub-error.active {
+    display: block;
+  }
+
+  .sub-meta {
+    display: flex;
+    gap: 14px;
+    flex-wrap: wrap;
+    font-family: 'VT323', monospace;
+    font-size: 16px;
+    color: var(--fog);
+    text-transform: uppercase;
+    letter-spacing: .08em;
+  }
+
+  .chk {
+    color: var(--acid);
+    margin-right: 4px;
+  }
+
+  .sep {
+    color: var(--concrete);
+  }
+
+  .sub-success {
+    display: none;
+    font-family: 'Archivo Black', sans-serif;
+    font-size: 16px;
+    text-transform: uppercase;
+    color: var(--acid);
+    padding: 10px 0 0;
+    letter-spacing: .04em;
+  }
+
+  .sub-success.active {
+    display: block;
+  }
+
+  .sub-success::before {
+    content: "[OK] ";
+    color: var(--magenta);
+  }
+
+  .perks {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    margin-top: 28px;
+    background: var(--bg-3);
+    border: 1px solid var(--concrete);
+  }
+
+  .perks .cell {
+    padding: 18px 16px;
+    border-right: 1px solid var(--concrete);
+  }
+
+  .perks .cell:last-child {
+    border-right: none;
+  }
+
+  .n {
+    font-family: 'Archivo Black', sans-serif;
+    font-size: 32px;
+    line-height: 1;
+    color: var(--acid);
+    letter-spacing: -.02em;
+    display: block;
+    margin-bottom: 8px;
+  }
+
+  .perks .cell:nth-child(2) .n {
+    color: var(--magenta);
+  }
+
+  .l {
+    font-family: 'VT323', monospace;
+    font-size: 15px;
+    color: var(--chalk);
+    text-transform: uppercase;
+    letter-spacing: .04em;
+    line-height: 1.35;
+  }
+
+  @media (max-width: 720px) {
+    .sub-inner {
+      padding: 32px 16px;
+    }
+
+    .sub-row {
+      flex-direction: column;
+    }
+
+    .sub-form button {
+      padding: 12px 16px;
+      border-left: none;
+      border-top: 2px solid var(--acid);
+    }
+
+    .perks {
+      grid-template-columns: 1fr;
+    }
+
+    .perks .cell {
+      border-right: none;
+      border-bottom: 1px solid var(--concrete);
+    }
+
+    .perks .cell:last-child {
+      border-bottom: none;
+    }
+  }
+</style>
+
+<script>
+  (function () {
+    const form = document.getElementById('subForm');
+    const emailEl = document.getElementById('subEmail') as HTMLInputElement | null;
+    const gdprEl = document.getElementById('subGdpr') as HTMLInputElement | null;
+    const subRow = document.querySelector('.sub-row') as HTMLElement | null;
+    const successEl = document.getElementById('subSuccess');
+    const errorEl = document.getElementById('subError');
+
+    if (!form || !emailEl || !gdprEl) return;
+
+    function setEmailError(on: boolean) {
+      subRow?.classList.toggle('error', on);
+    }
+
+    function showError(msg: string) {
+      if (errorEl) { errorEl.textContent = msg; errorEl.classList.add('active'); }
+    }
+
+    function clearError() {
+      if (errorEl) { errorEl.textContent = ''; errorEl.classList.remove('active'); }
+      setEmailError(false);
+    }
+
+    emailEl.addEventListener('input', () => { setEmailError(false); clearError(); });
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      clearError();
+
+      const email = emailEl.value.trim();
+      const atPos = email.indexOf('@');
+      const valid = atPos > 0 && email.includes('.', atPos);
+
+      if (!valid) {
+        setEmailError(true);
+        emailEl.focus();
+        return;
+      }
+
+      if (!gdprEl.checked) {
+        showError('Zaznacz zgodę na przetwarzanie danych osobowych.');
+        return;
+      }
+
+      try {
+        const res = await fetch(
+          'https://buttondown.com/api/emails/embed-subscribe/urban-padel-weekly',
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: new URLSearchParams({ email }).toString(),
+          }
+        );
+
+        if (!res.ok) {
+          showError(`Błąd serwera (${res.status}). Spróbuj ponownie.`);
+          return;
+        }
+
+        emailEl.value = '';
+        form.style.display = 'none';
+        if (successEl) {
+          successEl.textContent = `Dzięki! Pierwszy drop poleci na ${email} w najbliższy poniedziałek, 10:00.`;
+          successEl.classList.add('active');
+        }
+      } catch {
+        showError('Brak połączenia. Sprawdź internet i spróbuj ponownie.');
+      }
+    });
+  })();
+</script>

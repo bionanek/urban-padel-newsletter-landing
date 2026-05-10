@@ -1,0 +1,51 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import SerialStrip from '../components/SerialStrip.astro';
+import Nav from '../components/Nav.astro';
+import Hero from '../components/Hero.astro';
+import SubscribeBlock from '../components/SubscribeBlock.astro';
+import ArchiveSection from '../components/ArchiveSection.astro';
+import SlashDivider from '../components/SlashDivider.astro';
+import AboutSection from '../components/AboutSection.astro';
+import TipBar from '../components/TipBar.astro';
+import Footer from '../components/Footer.astro';
+import { getIssues, getSubscriberCount } from '../lib/buttondown';
+
+let issues = [];
+let subscriberCount = 0;
+
+try {
+  [issues, subscriberCount] = await Promise.all([getIssues(), getSubscriberCount()]);
+} catch (e) {
+  console.warn('[buttondown] API unavailable, using fallback data:', e);
+}
+
+const latestIssueNumber = issues.length > 0 ? issues[0].number : 0;
+const nextIssueNumber = latestIssueNumber + 1;
+
+const subscriberDisplay = subscriberCount > 0
+  ? subscriberCount.toLocaleString('pl-PL') + '+'
+  : '-';
+const latestDisplay = latestIssueNumber > 0
+  ? latestIssueNumber.toString().padStart(3, '0')
+  : '-';
+const nextDisplay = nextIssueNumber > 0
+  ? nextIssueNumber.toString().padStart(3, '0')
+  : '-';
+---
+
+<BaseLayout title="UrbanPadel Weekly - Polski padel, co poniedziałek">
+  <SerialStrip latestIssueNumber={latestDisplay} />
+  <Nav />
+  <Hero
+    subscriberCount={subscriberDisplay}
+    latestIssueNumber={latestDisplay}
+    nextIssueNumber={nextDisplay}
+  />
+  <SubscribeBlock hidePerks />
+  <ArchiveSection issueCount={latestDisplay} issues={issues} />
+  <SlashDivider />
+  <AboutSection />
+  <!-- <TipBar /> -->
+  <Footer latestIssueNumber={latestDisplay} />
+</BaseLayout>

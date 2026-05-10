@@ -1,0 +1,131 @@
+---
+---
+<section class="about" id="o-nas">
+  <div class="about-inner">
+    <div class="about-grid">
+      <div>
+        <h3>Po co nam <span class="sw">jeszcze jeden</span> newsletter?</h3>
+        <p>
+          Bo polski padel rośnie <span class="mg">szybciej, niż którykolwiek serwis nadąża</span> opisywać.
+          W tygodniu otwierają się trzy kluby, ktoś robi turniej o którym dowiesz się z Instagrama za późno,
+          a wyniki ligi toną w grupach na Facebook'u.
+        </p>
+        <p>
+          <b>UrbanPadel</b> powstał po to, aby zebrać wszystkie najważniejsze newsy z polskiego podwórka padlowego w <span class="hl">jeden mail w poniedziałek rano</span>. Wszystko co najważniejsze w jednym miejscu. Na temat i <span class="hl">bez spamu</span>. Po prostu. 
+        </p>
+      </div>
+      <blockquote class="pullquote">
+        „Wreszcie ktoś pisze o polskim padlu tak, że nie trzeba scrollować 40 grup na fejsie."
+      </blockquote>
+    </div>
+  </div>
+</section>
+
+<style>
+  .about {
+    background: var(--bg);
+    border-top: 1px solid var(--concrete);
+    border-bottom: 1px solid var(--concrete);
+  }
+
+  .about-inner {
+    max-width: 980px;
+    margin: 0 auto;
+    padding: 44px 24px;
+  }
+
+  .about-grid {
+    display: grid;
+    grid-template-columns: 1.1fr 1fr;
+    gap: 32px;
+    align-items: start;
+  }
+
+  h3 {
+    font-family: 'Archivo Black', sans-serif;
+    font-size: clamp(28px, 4vw, 42px);
+    line-height: 1;
+    letter-spacing: -.02em;
+    color: var(--white);
+    margin: 0 0 16px;
+    text-transform: uppercase;
+    text-wrap: balance;
+  }
+
+  .sw {
+    background: var(--acid);
+    color: var(--bg);
+    padding: 2px 8px 4px;
+    display: inline-block;
+    transform: skewX(-6deg);
+  }
+
+  p {
+    font-size: 17px;
+    line-height: 1.6;
+    color: var(--chalk);
+    max-width: 52ch;
+    margin: 0 0 14px;
+  }
+
+  .hl {
+    background: var(--acid);
+    color: var(--bg);
+    padding: 0 3px;
+    font-weight: 600;
+  }
+
+  .mg {
+    color: var(--magenta);
+    font-weight: 600;
+  }
+
+  .pullquote {
+    position: relative;
+    background: var(--magenta);
+    color: var(--white);
+    padding: 24px 26px 26px;
+    margin: 0;
+    font-family: 'Archivo Black', sans-serif;
+    font-size: 22px;
+    line-height: 1.15;
+    text-transform: uppercase;
+    letter-spacing: -.01em;
+    transform: rotate(-.5deg);
+    text-wrap: balance;
+  }
+
+  .pullquote::before {
+    content: "❝";
+    font-family: 'Archivo Black', sans-serif;
+    position: absolute;
+    top: -8px;
+    left: 14px;
+    font-size: 48px;
+    color: var(--acid);
+    line-height: 1;
+  }
+
+  cite {
+    display: block;
+    margin-top: 12px;
+    font-family: 'VT323', monospace;
+    font-size: 16px;
+    font-style: normal;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    color: var(--white);
+    opacity: .8;
+  }
+
+  @media (max-width: 720px) {
+    .about-inner {
+      padding: 32px 16px;
+    }
+
+    .about-grid {
+      grid-template-columns: 1fr;
+      gap: 24px;
+    }
+  }
+</style>

@@ -1,0 +1,784 @@
+---
+import { getIssues, getIssueContent, type Issue, type IssueContent } from '../../lib/buttondown';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import SerialStrip from '../../components/SerialStrip.astro';
+import Nav from '../../components/Nav.astro';
+import SubscribeBlock from '../../components/SubscribeBlock.astro';
+import Footer from '../../components/Footer.astro';
+
+export async function getStaticPaths() {
+  let issues: Issue[] = [];
+  try {
+    issues = await getIssues();
+  } catch (e) {
+    console.warn('[buttondown] API unavailable in getStaticPaths:', e);
+    return [];
+  }
+  const latestNum = issues[0]?.number.toString().padStart(3, '0') ?? '-';
+  return issues.map(issue => ({
+    params: { slug: issue.slug },
+    props: { issue, latestIssueNumber: latestNum },
+  }));
+}
+
+interface Props { issue: Issue; latestIssueNumber: string; }
+const { issue, latestIssueNumber } = Astro.props;
+
+let content: IssueContent = { introHtml: '', articles: [] };
+try {
+  content = await getIssueContent(issue.id);
+} catch (e) {
+  console.warn(`[buttondown] Could not fetch content for issue ${issue.slug}:`, e);
+}
+
+const numStr = issue.number.toString().padStart(3, '0');
+---
+
+<BaseLayout title={`Wydanie ${numStr} - ${issue.title} · UrbanPadel Weekly`}>
+
+  <SerialStrip latestIssueNumber={latestIssueNumber} />
+  <Nav />
+
+  <!-- Issue Masthead -->
+  <header class="masthead">
+    <div class="masthead-inner">
+      <div class="masthead-bleed" aria-hidden="true">{numStr}</div>
+
+      <div class="masthead-hero">
+        <div class="hero-top-meta">
+          <span>Wydanie z poniedziałku &middot; {issue.dropDate}.{issue.year}</span>
+        </div>
+
+        <h1 class="hero-title">
+          PADEL<span class="slash">/</span>POLSKA
+          <span class="weekly">Weekly.</span>
+        </h1>
+
+        <div class="hero-sub">
+          <span class="tag-mag">Newsletter &middot; Wydanie {numStr}</span>
+          <span class="by">by <b>UrbanPadel</b></span>
+        </div>
+
+        <div class="data-rail">
+          <div class="rail-cell">
+            <div class="rail-k">Wydanie</div>
+            <div class="rail-v">&#8470;&nbsp;{numStr}</div>
+          </div>
+          <div class="rail-cell">
+            <div class="rail-k">Tydzień</div>
+            <div class="rail-v acid">{issue.weekRange}</div>
+          </div>
+          <div class="rail-cell">
+            <div class="rail-k">Rok</div>
+            <div class="rail-v">{issue.year}</div>
+          </div>
+          <div class="rail-cell">
+            <div class="rail-k">Data</div>
+            <div class="rail-v">PON {issue.dropDate}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- B. INTRO - Editor's drop -->
+  <section class="intro-section">
+    <div class="intro-inner">
+      <div class="cat-label"><span class="mg-arrow">&gt;&gt;</span> Editor's drop / intro</div>
+      {content.introHtml
+        ? <p class="intro-body" set:html={content.introHtml} />
+        : issue.description
+          ? <p class="intro-body">{issue.description}</p>
+          : null
+      }
+    </div>
+  </section>
+
+  <!-- D + E. Articles -->
+  {content.articles.length > 0 ? (
+    <div class="articles">
+      {content.articles.map((article) => {
+        const isEven = parseInt(article.number, 10) % 2 === 0;
+        const accent = isEven ? 'var(--magenta)' : 'var(--acid)';
+        const accentClass = isEven ? 'magenta' : 'acid';
+        const badgeTextColor = article.categoryColor === '#d4ff3a' ? '#0d0d0d' : '#f6f4ec';
+        const boardTextColor = isEven ? '#f6f4ec' : '#0d0d0d';
+        return (
+          <article class="story">
+
+            <!-- D. Section header -->
+            <div class="story-header">
+              <div class="story-num" style={`color:${article.categoryColor}`}>
+                {article.number}
+              </div>
+              <div class="story-meta">
+                <span
+                  class="story-badge"
+                  style={`background:${article.categoryColor};color:${badgeTextColor}`}
+                  set:html={article.categoryLabel}
+                />
+                <div class="story-subtitle">// {article.subtitle}</div>
+              </div>
+            </div>
+
+            <!-- E. Article body -->
+            <div class="story-content">
+
+              <!-- [1] META dateline -->
+              {(article.date || article.location) && (
+                <div class="story-dateline">
+                  {article.date     && <span class="dl-date">{article.date}</span>}
+                  {article.date && article.location && <span class="dl-sep">//</span>}
+                  {article.location && <span class="dl-loc">{article.location}</span>}
+                  {article.location && article.tag && <span class="dl-sep">//</span>}
+                  {article.tag      && <span class="dl-tag">{article.tag}</span>}
+                </div>
+              )}
+
+              <!-- [2] H2 headline -->
+              <h2 class="story-headline" set:html={article.headlineHtml} />
+
+              <!-- [4] STATS GRID -->
+              {article.stats.length > 0 && (
+                <div class="stat-grid">
+                  {article.stats.map(stat => (
+                    <div class="stat-cell">
+                      <div class={`stat-val ${stat.color}`}>{stat.value}</div>
+                      <div class="stat-label">{stat.label}</div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              <!-- [5] RANKING BOARD -->
+              {article.rankingBoard && (
+                <div class="board">
+                  <div class="board-header" style={`background:${accent};color:${boardTextColor}`}>
+                    <span>{article.rankingBoard.title}</span>
+                    {article.rankingBoard.context && <span>{article.rankingBoard.context}</span>}
+                  </div>
+                  {article.rankingBoard.rows.map((row, ri) => (
+                    <div class={`board-row ${ri % 2 === 1 ? 'zebra' : ''}`}>
+                      <span class="board-rank">[{row.rank.padStart(2, '0')}]</span>
+                      <span class={`board-team ${ri === 0 ? accentClass : ''}`}>{row.team}</span>
+                      {row.city && <span class="board-city">{row.city}</span>}
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              <!-- [6] CALLOUT -->
+              {article.callout && (
+                <div class="callout">
+                  {article.callout.label && (
+                    <span class="callout-label">{article.callout.label}</span>
+                  )}
+                  <span class="callout-text">{article.callout.text}</span>
+                </div>
+              )}
+
+              <!-- [7] PULL QUOTE -->
+              {article.quote && (
+                <blockquote class="pull-quote">
+                  <p>{article.quote}</p>
+                  {article.quoteAuthor && <cite>{article.quoteAuthor}</cite>}
+                </blockquote>
+              )}
+
+              <!-- [8] LEDE paragraph -->
+              {article.bodyHtml && (
+                <p class="story-body" set:html={article.bodyHtml} />
+              )}
+
+              <!-- [9] Read more CTA -->
+              {article.readMoreUrl && (
+                <a
+                  href={article.readMoreUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="read-more"
+                >Czytaj dalej &rarr;</a>
+              )}
+
+            </div>
+          </article>
+        );
+      })}
+    </div>
+  ) : (
+    <div class="no-articles">
+      <p>Treść tego wydania jest tymczasowo niedostępna.</p>
+    </div>
+  )}
+
+  <SubscribeBlock hidePerks />
+  <Footer latestIssueNumber={numStr} />
+
+  <button id="scrollTop" aria-label="Przewiń do góry" title="Przewiń do góry">
+    ↑
+  </button>
+
+</BaseLayout>
+
+<style>
+  /* ── Masthead ──────────────────────────────────────────────────────────────── */
+  .masthead {
+    background: var(--bg);
+    border-bottom: 2px solid var(--acid);
+    overflow: hidden;
+  }
+
+  .masthead-inner {
+    max-width: 980px;
+    margin: 0 auto;
+    padding: 32px 24px 28px;
+    position: relative;
+  }
+
+  .masthead-bleed {
+    position: absolute;
+    top: -20px;
+    right: -10px;
+    font-family: 'Archivo Black', sans-serif;
+    font-size: 320px;
+    line-height: .8;
+    color: transparent;
+    -webkit-text-stroke: 1.5px var(--concrete);
+    letter-spacing: -.05em;
+    pointer-events: none;
+    user-select: none;
+    z-index: 0;
+  }
+
+  .masthead-hero { position: relative; z-index: 2; }
+
+  .hero-top-meta {
+    font-family: 'VT323', monospace;
+    font-size: 16px;
+    color: var(--acid);
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    margin-bottom: 24px;
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .hero-title {
+    font-family: 'Archivo Black', sans-serif;
+    font-size: clamp(60px, 10vw, 108px);
+    line-height: .88;
+    letter-spacing: -.04em;
+    margin: 0;
+    color: var(--white);
+    text-transform: uppercase;
+  }
+
+  .slash {
+    color: var(--acid);
+    display: inline-block;
+    transform: skewX(-12deg);
+    margin: 0 -.04em;
+  }
+
+  .weekly {
+    display: block;
+    color: var(--bg);
+    background: var(--acid);
+    padding: 2px 14px 6px;
+    margin-top: 8px;
+    width: max-content;
+    max-width: 100%;
+    transform: skewX(-8deg);
+  }
+
+  .hero-sub {
+    margin-top: 20px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex-wrap: wrap;
+  }
+
+  .tag-mag {
+    background: var(--magenta);
+    color: var(--white);
+    font-family: 'Archivo Black', sans-serif;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+    padding: 5px 12px 6px;
+    transform: rotate(-2deg);
+  }
+
+  .by {
+    font-family: 'VT323', monospace;
+    font-size: 17px;
+    color: var(--fog);
+    letter-spacing: .06em;
+    text-transform: uppercase;
+  }
+
+  .by b {
+    color: var(--acid);
+    text-decoration: underline;
+    text-decoration-color: var(--magenta);
+    text-underline-offset: 3px;
+  }
+
+  .data-rail {
+    margin-top: 28px;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    border-top: 1px solid var(--concrete);
+    border-bottom: 1px solid var(--concrete);
+  }
+
+  .rail-cell {
+    padding: 14px;
+    border-right: 1px solid var(--concrete);
+    font-family: 'VT323', monospace;
+  }
+  .rail-cell:last-child { border-right: none; }
+
+  .rail-k {
+    font-size: 13px;
+    color: var(--fog);
+    text-transform: uppercase;
+    letter-spacing: .12em;
+    margin-bottom: 2px;
+  }
+
+  .rail-v {
+    font-family: 'Archivo Black', sans-serif;
+    font-size: 18px;
+    color: var(--white);
+    letter-spacing: .01em;
+  }
+  .rail-v.acid { color: var(--acid); }
+
+  /* ── B. Intro ──────────────────────────────────────────────────────────────── */
+  .intro-section {
+    background: var(--bg-2);
+    border-bottom: 1px solid var(--concrete);
+  }
+
+  .intro-inner {
+    max-width: 980px;
+    margin: 0 auto;
+    padding: 36px 24px;
+  }
+
+  .cat-label {
+    font-family: 'VT323', monospace;
+    font-size: 16px;
+    color: var(--acid);
+    text-transform: uppercase;
+    letter-spacing: .1em;
+    margin-bottom: 12px;
+  }
+
+  .mg-arrow { color: var(--magenta); }
+
+  .intro-body {
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 17px;
+    line-height: 1.55;
+    color: var(--chalk);
+    max-width: 64ch;
+    margin: 0;
+  }
+
+  .intro-body :global(strong) { color: var(--white); font-weight: 700; }
+  .intro-body :global(span[style*="#d4ff3a"]) { background: var(--acid); color: var(--bg); padding: 0 4px; font-weight: 600; }
+  .intro-body :global(span[style*="#ff2e6a"]) { color: var(--magenta); font-weight: 600; }
+
+  /* ── D+E. Articles ─────────────────────────────────────────────────────────── */
+  .articles { background: var(--bg); }
+
+  .story {
+    max-width: 980px;
+    margin: 0 auto;
+    border-bottom: 1px solid var(--concrete);
+  }
+
+  /* D. Section header */
+  .story-header {
+    display: flex;
+    align-items: flex-end;
+    gap: 20px;
+    padding: 48px 24px 16px;
+  }
+
+  .story-num {
+    font-family: 'Archivo Black', sans-serif;
+    font-size: 100px;
+    line-height: .85;
+    letter-spacing: -.04em;
+    flex-shrink: 0;
+    width: 120px;
+  }
+
+  .story-meta {
+    padding-bottom: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .story-badge {
+    display: inline-block;
+    font-family: 'Archivo Black', sans-serif;
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    padding: 6px 12px 7px;
+    line-height: 1;
+    align-self: flex-start;
+  }
+
+  .story-subtitle {
+    font-family: 'VT323', monospace;
+    font-size: 16px;
+    color: var(--fog);
+    text-transform: uppercase;
+    letter-spacing: .12em;
+  }
+
+  /* E. Article content */
+  .story-content { padding: 28px 24px 44px; }
+
+  /* [1] META dateline */
+  .story-dateline {
+    font-family: 'VT323', monospace;
+    font-size: 15px;
+    text-transform: uppercase;
+    letter-spacing: .1em;
+    color: var(--fog);
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .dl-date { color: var(--acid); }
+  .dl-sep  { color: var(--concrete); }
+  .dl-loc  { color: var(--chalk); }
+  .dl-tag  { color: var(--fog); }
+
+  /* [2] H2 */
+  .story-headline {
+    font-family: 'Archivo Black', sans-serif;
+    font-size: clamp(26px, 4vw, 38px);
+    line-height: 1.05;
+    letter-spacing: -.02em;
+    color: var(--white);
+    margin: 0 0 22px;
+    text-transform: uppercase;
+    max-width: 72ch;
+  }
+
+  /* Inline colour swatches from the email HTML are preserved */
+  .story-headline :global(span[style*="background-color:#d4ff3a"]) {
+    background: var(--acid);
+    color: var(--bg);
+    padding: 2px 8px 4px;
+  }
+  .story-headline :global(span[style*="background-color:#ff2e6a"]) {
+    background: var(--magenta);
+    color: var(--white);
+    padding: 2px 8px 4px;
+  }
+  /* Underline-bar highlight from the template */
+  .story-headline :global(span[style*="background-image:linear-gradient"]) {
+    border-bottom: 3px solid var(--magenta);
+    background: none;
+    padding: 0;
+  }
+
+  /* [4] STATS GRID */
+  .stat-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    border: 1px solid var(--acid);
+    background: #1e1e1e;
+    margin-bottom: 22px;
+  }
+
+  .stat-cell {
+    padding: 16px 14px;
+    border-right: 1px solid var(--concrete);
+    font-family: 'VT323', monospace;
+  }
+  .stat-cell:last-child { border-right: none; }
+
+  .stat-val {
+    font-family: 'Archivo Black', sans-serif;
+    font-size: clamp(22px, 3vw, 32px);
+    line-height: 1;
+    letter-spacing: -.03em;
+    margin-bottom: 6px;
+  }
+  .stat-val.acid    { color: var(--acid); }
+  .stat-val.magenta { color: var(--magenta); }
+  .stat-val.white   { color: var(--white); }
+
+  .stat-label {
+    font-size: 14px;
+    color: var(--chalk);
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    line-height: 1.35;
+  }
+
+  /* [5] RANKING BOARD */
+  .board {
+    border: 1px solid var(--acid);
+    background: #1e1e1e;
+    margin-bottom: 22px;
+  }
+
+  .board-header {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 14px;
+    font-family: 'Archivo Black', sans-serif;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    font-weight: 900;
+  }
+
+  .board-row {
+    display: flex;
+    align-items: center;
+    padding: 7px 14px;
+    gap: 10px;
+  }
+  .board-row.zebra { background: #161616; }
+
+  .board-rank {
+    font-family: 'VT323', monospace;
+    font-size: 17px;
+    color: var(--magenta);
+    width: 42px;
+    flex-shrink: 0;
+  }
+
+  .board-team {
+    font-family: 'Archivo Black', sans-serif;
+    font-size: 16px;
+    color: var(--white);
+    text-transform: uppercase;
+    flex: 1;
+  }
+  .board-team.acid    { color: var(--acid); }
+  .board-team.magenta { color: var(--magenta); }
+
+  .board-city {
+    font-family: 'VT323', monospace;
+    font-size: 15px;
+    color: var(--fog);
+    text-transform: uppercase;
+    letter-spacing: .08em;
+  }
+
+  /* [6] CALLOUT */
+  .callout {
+    border: 2px dashed var(--acid);
+    background: #141a08;
+    padding: 14px 16px;
+    margin-bottom: 22px;
+    font-family: 'VT323', monospace;
+    font-size: 16px;
+    color: var(--chalk);
+    letter-spacing: .06em;
+    line-height: 1.5;
+  }
+
+  .callout-label {
+    display: inline-block;
+    background: var(--acid);
+    color: var(--bg);
+    font-family: 'Archivo Black', sans-serif;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    padding: 2px 8px 3px;
+    margin-right: 10px;
+    font-weight: 900;
+    vertical-align: middle;
+  }
+
+  .callout-text { vertical-align: middle; }
+
+  /* [7] PULL QUOTE */
+  .pull-quote {
+    background: var(--magenta);
+    margin: 0 0 22px;
+    padding: 22px 24px 24px;
+    border: none;
+  }
+
+  .pull-quote::before {
+    content: '\201C';
+    display: block;
+    font-family: 'Archivo Black', sans-serif;
+    font-size: 24px;
+    color: var(--acid);
+    line-height: 1;
+    margin-bottom: 8px;
+    font-weight: 900;
+  }
+
+  .pull-quote p {
+    font-family: 'Archivo Black', sans-serif;
+    font-size: clamp(18px, 2.5vw, 22px);
+    line-height: 1.15;
+    color: var(--white);
+    text-transform: uppercase;
+    letter-spacing: -.01em;
+    margin: 0 0 14px;
+  }
+
+  .pull-quote cite {
+    display: block;
+    font-family: 'VT323', monospace;
+    font-style: normal;
+    font-size: 15px;
+    text-transform: uppercase;
+    letter-spacing: .1em;
+    color: var(--white);
+    opacity: .75;
+  }
+  .pull-quote cite::before { content: '- '; }
+
+  /* [8] LEDE */
+  .story-body {
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 17px;
+    line-height: 1.65;
+    color: var(--chalk);
+    margin: 0 0 24px;
+    max-width: 72ch;
+  }
+
+  .story-body :global(strong) { color: var(--white); font-weight: 700; }
+  .story-body :global(span[style*="background-color:#d4ff3a"]) {
+    background: var(--acid);
+    color: var(--bg);
+    padding: 0 3px;
+    font-weight: 600;
+  }
+  .story-body :global(span[style*="#ff2e6a"]) { color: var(--magenta); font-weight: 600; }
+
+  /* [9] CTA */
+  .read-more {
+    display: inline-block;
+    padding: 15px 22px;
+    background: var(--acid);
+    color: var(--bg);
+    text-decoration: none;
+    font-family: 'Archivo Black', sans-serif;
+    font-size: 15px;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    border: 2px solid var(--acid);
+    transition: background .15s, color .15s;
+  }
+
+  .read-more:hover {
+    background: transparent;
+    color: var(--acid);
+  }
+
+  /* No-content fallback */
+  .no-articles {
+    max-width: 980px;
+    margin: 0 auto;
+    padding: 48px 24px;
+    font-family: 'VT323', monospace;
+    color: var(--fog);
+    text-transform: uppercase;
+    letter-spacing: .08em;
+  }
+
+  /* ── Responsive ────────────────────────────────────────────────────────────── */
+  @media (max-width: 720px) {
+    .masthead-inner  { padding: 24px 16px 22px; }
+    .masthead-bleed  { font-size: 200px; right: -6px; }
+    .hero-top-meta   { font-size: 14px; }
+    .data-rail       { grid-template-columns: 1fr 1fr; }
+    .rail-cell:nth-child(2) { border-right: none; }
+    .rail-cell:nth-child(1),
+    .rail-cell:nth-child(2) { border-bottom: 1px solid var(--concrete); }
+    .intro-inner     { padding: 28px 16px; }
+
+    .story-header { padding: 32px 16px 12px; gap: 14px; }
+    .story-num    { font-size: 72px; width: 88px; }
+    .story-content { padding: 20px 16px 36px; }
+
+    .stat-grid { grid-template-columns: 1fr; }
+    .stat-cell { border-right: none !important; border-bottom: 1px solid var(--concrete); }
+    .stat-cell:last-child { border-bottom: none; }
+  }
+
+  /* ── Scroll-to-top button ──────────────────────────────────────────────────── */
+  #scrollTop {
+    position: fixed;
+    bottom: 28px;
+    right: 28px;
+    width: 48px;
+    height: 48px;
+    background: var(--acid);
+    color: var(--bg);
+    border: none;
+    font-family: 'Archivo Black', sans-serif;
+    font-size: 22px;
+    line-height: 1;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(12px);
+    transition: opacity .2s, transform .2s;
+    z-index: 999;
+  }
+
+  #scrollTop.visible {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateY(0);
+  }
+
+  #scrollTop:hover {
+    background: var(--magenta);
+    color: var(--white);
+  }
+
+  @media (max-width: 720px) {
+    #scrollTop { bottom: 18px; right: 16px; }
+  }
+</style>
+
+<script>
+  (function () {
+    const btn = document.getElementById('scrollTop');
+    if (!btn) return;
+
+    function onScroll() {
+      const scrolled = window.scrollY / (document.documentElement.scrollHeight - window.innerHeight);
+      btn.classList.toggle('visible', scrolled >= 0.2);
+    }
+
+    window.addEventListener('scroll', onScroll, { passive: true });
+
+    btn.addEventListener('click', () => {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+  })();
+</script>

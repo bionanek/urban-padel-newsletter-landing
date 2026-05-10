@@ -1,0 +1,322 @@
+---
+interface Props {
+  subscriberCount?: string;
+  latestIssueNumber?: string;
+  nextIssueNumber?: string;
+}
+const {
+  subscriberCount = '4 820+',
+  latestIssueNumber = '016',
+  nextIssueNumber = '017',
+} = Astro.props;
+---
+
+<div class="hero">
+  <div class="bleed-num">PL</div>
+
+  <div class="hero-inner">
+    <div class="hero-top">
+      <span>Polski padel · co poniedziałek</span>
+      <span class="countdown">
+        <span class="cd-label">Wyd. {nextIssueNumber} · drop</span>
+        <span class="cd-val" id="cdVal">--d --h --m</span>
+      </span>
+    </div>
+
+    <h1>
+      PADEL<span class="slash">/</span>POLSKA
+      <span class="weekly">Weekly.</span>
+    </h1>
+
+    <div class="hero-sub">
+      <span class="tag-mag">Newsletter · urbanpadel.pl</span>
+      <span class="by">by <b>UrbanPadel</b></span>
+    </div>
+
+    <p class="hero-pitch">
+      Co tydzień <span class="hl">jeden mail</span>, dzięki któremu jesteś na bieżąco z polską sceną padla.
+      Nowe kluby, turnieje, rankingi, dramy, sukcesy i porażki - krótko, i na temat.
+    </p>
+
+    <div class="hero-rail">
+      <div class="cell hot">
+        <div class="k">Subskrybenci</div>
+        <div class="v">{subscriberCount}</div>
+      </div>
+      <div class="cell">
+        <div class="k">Wydań</div>
+        <div class="v">№ {latestIssueNumber}</div>
+      </div>
+      <div class="cell">
+        <div class="k">Drop</div>
+        <div class="v">PON · 10:00</div>
+      </div>
+      <div class="cell">
+        <div class="k">Cena</div>
+        <div class="v">0 zł</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  .hero {
+    position: relative;
+    padding: 40px 0 32px;
+    background: var(--bg);
+    border-bottom: 2px solid var(--acid);
+    overflow: hidden;
+  }
+
+  .bleed-num {
+    position: absolute;
+    top: -40px;
+    right: 0;
+    font-family: 'Archivo Black', sans-serif;
+    font-size: 360px;
+    line-height: .8;
+    color: transparent;
+    -webkit-text-stroke: 2px var(--concrete);
+    letter-spacing: -.05em;
+    pointer-events: none;
+    user-select: none;
+    z-index: 0;
+  }
+
+  .hero-inner {
+    max-width: 980px;
+    margin: 0 auto;
+    padding: 0 24px;
+    position: relative;
+    z-index: 2;
+  }
+
+  .hero-top {
+    font-family: 'VT323', monospace;
+    font-size: 16px;
+    color: var(--acid);
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    margin-bottom: 28px;
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .countdown {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--bg);
+    border: 1px solid var(--acid);
+    padding: 3px 10px 4px;
+    font-family: 'VT323', monospace;
+    font-size: 16px;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+  }
+
+  .cd-label {
+    color: var(--fog);
+  }
+
+  .cd-val {
+    color: var(--acid);
+    font-family: 'Archivo Black', sans-serif;
+    font-size: 16px;
+    letter-spacing: .03em;
+  }
+
+  .cd-val::before {
+    content: "● ";
+    color: var(--magenta);
+    animation: cdpulse 1.2s ease-in-out infinite;
+    font-size: .8em;
+  }
+
+  @keyframes cdpulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: .35; }
+  }
+
+  h1 {
+    font-family: 'Archivo Black', sans-serif;
+    font-size: clamp(64px, 11vw, 120px);
+    line-height: .88;
+    letter-spacing: -.04em;
+    margin: 0;
+    color: var(--white);
+    text-transform: uppercase;
+  }
+
+  .slash {
+    color: var(--acid);
+    display: inline-block;
+    transform: skewX(-12deg);
+    margin: 0 -.04em;
+  }
+
+  .weekly {
+    display: block;
+    color: var(--bg);
+    background: var(--acid);
+    padding: 2px 14px 6px;
+    margin-top: 8px;
+    width: max-content;
+    max-width: 100%;
+    transform: skewX(-8deg);
+  }
+
+  .hero-sub {
+    margin-top: 22px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex-wrap: wrap;
+  }
+
+  .tag-mag {
+    background: var(--magenta);
+    color: var(--white);
+    font-family: 'Archivo Black', sans-serif;
+    font-size: 15px;
+    text-transform: uppercase;
+    letter-spacing: .02em;
+    padding: 6px 12px 7px;
+    transform: rotate(-2deg);
+  }
+
+  .by {
+    font-family: 'VT323', monospace;
+    font-size: 18px;
+    color: var(--fog);
+    letter-spacing: .06em;
+    text-transform: uppercase;
+  }
+
+  .by b {
+    color: var(--acid);
+    text-decoration: underline;
+    text-decoration-color: var(--magenta);
+    text-underline-offset: 3px;
+  }
+
+  .hero-pitch {
+    margin-top: 24px;
+    max-width: 56ch;
+    font-size: 17px;
+    line-height: 1.55;
+    color: var(--chalk);
+  }
+
+  .hero-pitch .hl {
+    background: var(--acid);
+    color: var(--bg);
+    padding: 0 4px;
+    font-weight: 600;
+  }
+
+  .hero-pitch .mg {
+    color: var(--magenta);
+    font-weight: 600;
+  }
+
+  .hero-rail {
+    margin-top: 32px;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0;
+    border-top: 1px solid var(--concrete);
+    border-bottom: 1px solid var(--concrete);
+  }
+
+  .cell {
+    padding: 14px;
+    border-right: 1px solid var(--concrete);
+    font-family: 'VT323', monospace;
+  }
+
+  .cell:last-child {
+    border-right: none;
+  }
+
+  .k {
+    font-size: 16px;
+    color: var(--fog);
+    text-transform: uppercase;
+    letter-spacing: .12em;
+    margin-bottom: 2px;
+  }
+
+  .v {
+    font-family: 'Archivo Black', sans-serif;
+    font-size: 20px;
+    color: var(--white);
+    letter-spacing: .01em;
+  }
+
+  .cell.hot .v {
+    color: var(--acid);
+  }
+
+  @media (max-width: 720px) {
+
+    .hero {
+      padding: 28px 0 26px;
+    }
+
+    .hero-inner {
+      padding: 0 16px;
+    }
+
+    .bleed-num {
+      font-size: 220px;
+    }
+
+    .hero-rail {
+      grid-template-columns: 1fr 1fr;
+    }
+
+    .cell:nth-child(2) {
+      border-right: none;
+    }
+
+    .cell:nth-child(1),
+    .cell:nth-child(2) {
+      border-bottom: 1px solid var(--concrete);
+    }
+  }
+</style>
+
+<script>
+  (function () {
+    const el = document.getElementById('cdVal');
+    if (!el) return;
+
+    function nextMonday() {
+      const now = new Date();
+      const day = now.getDay();
+      let diff = day === 1 ? 0 : (8 - day) % 7 || 7;
+      const target = new Date(now);
+      target.setDate(target.getDate() + diff);
+      target.setHours(10, 0, 0, 0);
+      if (target <= now) {
+        target.setDate(target.getDate() + 7);
+      }
+      return target;
+    }
+
+    function render() {
+      const diff = Math.max(0, nextMonday() - Date.now());
+      const s = Math.floor(diff / 1000);
+      const d = Math.floor(s / 86400);
+      const h = Math.floor((s % 86400) / 3600);
+      const m = Math.floor((s % 3600) / 60);
+      el.textContent = `${String(d).padStart(2, '0')}d ${String(h).padStart(2, '0')}h ${String(m).padStart(2, '0')}m`;
+    }
+
+    render();
+    setInterval(render, 30000);
+  })();
+</script>

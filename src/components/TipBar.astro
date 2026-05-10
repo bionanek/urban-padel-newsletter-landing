@@ -1,0 +1,54 @@
+---
+---
+<section class="tipbar">
+  <div class="inner">
+    <span class="tag">Masz newsa?</span>
+    <p>Otwierasz klub, organizujesz turniej, wzrosłaś w rankingu? <b>Wrzuć do nas</b> - czytamy wszystko, najlepsze lądują w najbliższym wydaniu.</p>
+  </div>
+</section>
+
+<style>
+  .tipbar {
+    background: var(--bg-2);
+    border-bottom: 1px solid var(--concrete);
+  }
+
+  .inner {
+    max-width: 980px;
+    margin: 0 auto;
+    padding: 36px 24px;
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 24px;
+    align-items: center;
+  }
+
+  .tag {
+    background: var(--acid);
+    color: var(--bg);
+    font-family: 'Archivo Black', sans-serif;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: .02em;
+    padding: 8px 12px 9px;
+  }
+
+  p {
+    margin: 0;
+    font-size: 16px;
+    line-height: 1.5;
+    color: var(--chalk);
+  }
+
+  p b {
+    color: var(--white);
+  }
+
+  @media (max-width: 720px) {
+    .inner {
+      padding: 28px 16px;
+      grid-template-columns: 1fr;
+      gap: 14px;
+    }
+  }
+</style>

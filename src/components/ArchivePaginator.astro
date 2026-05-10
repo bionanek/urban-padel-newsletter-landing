@@ -1,0 +1,131 @@
+---
+import type { Issue } from '../lib/buttondown';
+import IssueCard from './IssueCard.astro';
+
+interface Props {
+  issues: Issue[];
+}
+const { issues } = Astro.props;
+
+const PAGE_SIZE = 8;
+const pages: Issue[][] = [];
+for (let i = 0; i < issues.length; i += PAGE_SIZE) {
+  pages.push(issues.slice(i, i + PAGE_SIZE));
+}
+const totalPages = pages.length;
+---
+
+<div class="paginator" id="archivePaginator">
+  {pages.map((page, pi) => (
+    <div class="ap-page" data-page={pi} style={pi > 0 ? 'display:none' : ''}>
+      {page.map(issue => <IssueCard issue={issue} />)}
+    </div>
+  ))}
+
+  {totalPages > 1 && (
+    <div class="ap-controls">
+      <button class="ap-btn" id="apPrev" disabled>← Poprzednie</button>
+      <span class="ap-info" id="apInfo">1 / {totalPages}</span>
+      <button class="ap-btn" id="apNext">Następne →</button>
+    </div>
+  )}
+</div>
+
+<script>
+  (function () {
+    const container = document.getElementById('archivePaginator');
+    if (!container) return;
+
+    const pages = container.querySelectorAll<HTMLElement>('.ap-page');
+    const prevBtn = container.querySelector<HTMLButtonElement>('#apPrev');
+    const nextBtn = container.querySelector<HTMLButtonElement>('#apNext');
+    const infoEl = container.querySelector('#apInfo');
+    const total = pages.length;
+
+    let current = 0;
+
+    function update() {
+      pages.forEach((page, i) => {
+        page.style.display = i === current ? '' : 'none';
+      });
+      if (prevBtn) prevBtn.disabled = current === 0;
+      if (nextBtn) nextBtn.disabled = current === total - 1;
+      if (infoEl) infoEl.textContent = `${current + 1} / ${total}`;
+    }
+
+    const scrollToArchive = () => {
+      const section = document.getElementById('archive');
+      if (section) section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    };
+
+    prevBtn?.addEventListener('click', () => {
+      if (current > 0) { current--; update(); scrollToArchive(); }
+    });
+    nextBtn?.addEventListener('click', () => {
+      if (current < total - 1) { current++; update(); scrollToArchive(); }
+    });
+
+    update();
+  })();
+</script>
+
+<style>
+  .paginator {
+    width: 100%;
+  }
+
+  .ap-page {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 18px;
+  }
+
+  .ap-controls {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-top: 22px;
+    padding-top: 16px;
+    border-top: 1px dashed var(--concrete);
+  }
+
+  .ap-btn {
+    font-family: 'VT323', monospace;
+    font-size: 16px;
+    color: var(--acid);
+    background: none;
+    border: 1px solid var(--acid);
+    padding: 5px 14px 6px;
+    cursor: pointer;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    transition: background .1s, color .1s;
+  }
+
+  .ap-btn:hover:not(:disabled) {
+    background: var(--acid);
+    color: var(--bg);
+  }
+
+  .ap-btn:disabled {
+    border-color: var(--concrete);
+    color: var(--fog);
+    cursor: default;
+  }
+
+  .ap-info {
+    font-family: 'VT323', monospace;
+    font-size: 16px;
+    color: var(--fog);
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    flex: 1;
+    text-align: center;
+  }
+
+  @media (max-width: 720px) {
+    .ap-page {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
