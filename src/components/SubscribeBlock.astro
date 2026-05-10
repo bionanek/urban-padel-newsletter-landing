@@ -413,7 +413,7 @@ const { hidePerks = false } = Astro.props;
         emailEl.value = '';
         form.style.display = 'none';
         if (successEl) {
-          successEl.textContent = `Dzięki! Pierwszy drop poleci na ${email} w najbliższy poniedziałek, 10:00.`;
+          successEl.textContent = `Prawie gotowe! Wysłaliśmy link potwierdzający na ${email}. Kliknij go, żeby dokończyć zapis.`;
           successEl.classList.add('active');
         }
       } catch {
