@@ -1,0 +1,140 @@
+---
+import { getIssues, getIssueContent, type Issue, type Article } from '../../../lib/buttondown';
+import {
+  storySlug, stripHtml, truncate, headlineClause, hasStorySubstance, newsArticleLd, breadcrumbLd, absoluteUrl,
+} from '../../../lib/seo';
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import StoryArticle from '../../../components/StoryArticle.astro';
+import SerialStrip from '../../../components/SerialStrip.astro';
+import Nav from '../../../components/Nav.astro';
+import SubscribeBlock from '../../../components/SubscribeBlock.astro';
+import Footer from '../../../components/Footer.astro';
+
+export async function getStaticPaths() {
+  let issues: Issue[] = [];
+  try {
+    issues = await getIssues();
+  } catch (e) {
+    console.warn('[buttondown] API unavailable in story getStaticPaths:', e);
+    return [];
+  }
+  const latestNum = issues[0]?.number.toString().padStart(3, '0') ?? '-';
+
+  const paths = [];
+  for (const issue of issues) {
+    let articles: Article[] = [];
+    try {
+      const content = await getIssueContent(issue.id);
+      articles = content.articles;
+    } catch (e) {
+      console.warn(`[buttondown] Could not fetch content for ${issue.slug}:`, e);
+    }
+    for (const article of articles) {
+      // Skip near-empty stories (headline only, no body/stats/board) — too thin to index.
+      if (!hasStorySubstance(article)) continue;
+
+      paths.push({
+        params: { slug: issue.slug, story: storySlug(article) },
+        props: { issue, article, latestIssueNumber: latestNum },
+      });
+    }
+  }
+  return paths;
+}
+
+interface Props { issue: Issue; article: Article; latestIssueNumber: string; }
+const { issue, article, latestIssueNumber } = Astro.props;
+
+const numStr = issue.number.toString().padStart(3, '0');
+const headlineText = stripHtml(article.headlineHtml);
+const bodyText = stripHtml(article.bodyHtml);
+
+const pageTitle = `${truncate(headlineClause(headlineText), 70, false)} — Padel Polska Weekly #${numStr}`;
+const pageDescription = truncate(bodyText || headlineText, 155);
+
+const issueUrl = absoluteUrl(`/issues/${issue.slug}/`);
+const canonicalUrl = absoluteUrl(`/issues/${issue.slug}/${storySlug(article)}/`);
+
+const jsonLd = [
+  newsArticleLd({
+    headline: headlineText,
+    description: pageDescription,
+    datePublished: issue.publishedAt,
+    url: canonicalUrl,
+  }),
+  breadcrumbLd([
+    { name: 'Start', url: absoluteUrl('/') },
+    { name: 'Wydania', url: absoluteUrl('/archiwum/') },
+    { name: `Wydanie #${numStr}`, url: issueUrl },
+    { name: headlineText, url: canonicalUrl },
+  ]),
+];
+---
+
+<BaseLayout title={pageTitle} description={pageDescription} ogType="article" jsonLd={jsonLd}>
+
+  <SerialStrip latestIssueNumber={latestIssueNumber} />
+  <Nav />
+
+  <!-- Breadcrumb / issue context -->
+  <nav class="crumb" aria-label="Ścieżka okruszków">
+    <a href="/">Start</a>
+    <span class="crumb-sep">/</span>
+    <a href="/archiwum/">Wydania</a>
+    <span class="crumb-sep">/</span>
+    <a href={`/issues/${issue.slug}/`}>Wydanie #{numStr}</a>
+    <span class="crumb-sep">/</span>
+    <span class="crumb-current">Historia {article.number}</span>
+  </nav>
+
+  <div class="story-wrap">
+    <StoryArticle article={article} as="h1" />
+
+    <div class="back-to-issue">
+      <a href={`/issues/${issue.slug}/`}>← Wróć do całego wydania #{numStr}</a>
+    </div>
+  </div>
+
+  <SubscribeBlock hidePerks />
+  <Footer latestIssueNumber={numStr} />
+</BaseLayout>
+
+<style>
+  .crumb {
+    max-width: 980px;
+    margin: 0 auto;
+    padding: 18px 24px 0;
+    font-family: 'VT323', monospace;
+    font-size: 15px;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    color: var(--fog);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+  }
+  .crumb a { color: var(--fog); text-decoration: none; }
+  .crumb a:hover { color: var(--acid); }
+  .crumb-sep { color: var(--concrete); }
+  .crumb-current { color: var(--chalk); }
+
+  .story-wrap { background: var(--bg); }
+
+  .back-to-issue {
+    max-width: 980px;
+    margin: 0 auto;
+    padding: 24px 24px 48px;
+    font-family: 'VT323', monospace;
+    font-size: 16px;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+  }
+  .back-to-issue a { color: var(--acid); text-decoration: none; }
+  .back-to-issue a:hover { text-decoration: underline; text-underline-offset: 3px; }
+
+  @media (max-width: 720px) {
+    .crumb { padding: 14px 16px 0; }
+    .back-to-issue { padding: 20px 16px 36px; }
+  }
+</style>

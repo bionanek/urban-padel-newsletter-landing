@@ -9,13 +9,14 @@ import SlashDivider from '../components/SlashDivider.astro';
 import AboutSection from '../components/AboutSection.astro';
 import TipBar from '../components/TipBar.astro';
 import Footer from '../components/Footer.astro';
-import { getIssues, getSubscriberCount } from '../lib/buttondown';
+import { getIssuesWithExcerpts, getSubscriberCount } from '../lib/buttondown';
+import { websiteLd } from '../lib/seo';
 
 let issues = [];
 let subscriberCount = 0;
 
 try {
-  [issues, subscriberCount] = await Promise.all([getIssues(), getSubscriberCount()]);
+  [issues, subscriberCount] = await Promise.all([getIssuesWithExcerpts(), getSubscriberCount()]);
 } catch (e) {
   console.warn('[buttondown] API unavailable, using fallback data:', e);
 }
@@ -34,7 +35,12 @@ const nextDisplay = nextIssueNumber > 0
   : '-';
 ---
 
-<BaseLayout title="UrbanPadel Weekly - Polski padel, co poniedziałek">
+<BaseLayout
+  title="UrbanPadel Weekly - Polski padel, co poniedziałek"
+  description="Cotygodniowy newsletter o polskiej scenie padla: kluby, turnieje, rankingi FIP/PZP i ludzie polskiego padla. Co poniedziałek w Twojej skrzynce."
+  ogType="website"
+  jsonLd={[websiteLd()]}
+>
   <SerialStrip latestIssueNumber={latestDisplay} />
   <Nav />
   <Hero

@@ -1,0 +1,441 @@
+---
+import type { Article } from '../lib/buttondown';
+
+interface Props {
+  article: Article;
+  /** Heading tag for the story headline: h2 inside a digest, h1 on a standalone story page. */
+  as?: 'h1' | 'h2';
+  /** When set, the headline links to the standalone story page (digest mode). */
+  href?: string;
+}
+const { article, as = 'h2', href } = Astro.props;
+
+const isEven = parseInt(article.number, 10) % 2 === 0;
+const accent = isEven ? 'var(--magenta)' : 'var(--acid)';
+const accentClass = isEven ? 'magenta' : 'acid';
+const badgeTextColor = article.categoryColor === '#d4ff3a' ? '#0d0d0d' : '#f6f4ec';
+const boardTextColor = isEven ? '#f6f4ec' : '#0d0d0d';
+const Heading = as;
+---
+
+<article class="story">
+
+  <!-- D. Section header -->
+  <div class="story-header">
+    <div class="story-num" style={`color:${article.categoryColor}`}>
+      {article.number}
+    </div>
+    <div class="story-meta">
+      <span
+        class="story-badge"
+        style={`background:${article.categoryColor};color:${badgeTextColor}`}
+        set:html={article.categoryLabel}
+      />
+      <div class="story-subtitle">// {article.subtitle}</div>
+    </div>
+  </div>
+
+  <!-- E. Article body -->
+  <div class="story-content">
+
+    <!-- [1] META dateline -->
+    {(article.date || article.location) && (
+      <div class="story-dateline">
+        {article.date     && <span class="dl-date">{article.date}</span>}
+        {article.date && article.location && <span class="dl-sep">//</span>}
+        {article.location && <span class="dl-loc">{article.location}</span>}
+        {article.location && article.tag && <span class="dl-sep">//</span>}
+        {article.tag      && <span class="dl-tag">{article.tag}</span>}
+      </div>
+    )}
+
+    <!-- [2] Headline -->
+    {href ? (
+      <a class="story-headline-link" href={href}>
+        <Heading class="story-headline" set:html={article.headlineHtml} />
+      </a>
+    ) : (
+      <Heading class="story-headline" set:html={article.headlineHtml} />
+    )}
+
+    <!-- [4] STATS GRID -->
+    {article.stats.length > 0 && (
+      <div class="stat-grid">
+        {article.stats.map(stat => (
+          <div class="stat-cell">
+            <div class={`stat-val ${stat.color}`}>{stat.value}</div>
+            <div class="stat-label">{stat.label}</div>
+          </div>
+        ))}
+      </div>
+    )}
+
+    <!-- [5] RANKING BOARD -->
+    {article.rankingBoard && (
+      <div class="board">
+        <div class="board-header" style={`background:${accent};color:${boardTextColor}`}>
+          <span>{article.rankingBoard.title}</span>
+          {article.rankingBoard.context && <span>{article.rankingBoard.context}</span>}
+        </div>
+        {article.rankingBoard.rows.map((row, ri) => (
+          <div class={`board-row ${ri % 2 === 1 ? 'zebra' : ''}`}>
+            <span class="board-rank">[{row.rank.padStart(2, '0')}]</span>
+            <span class={`board-team ${ri === 0 ? accentClass : ''}`}>{row.team}</span>
+            {row.city && <span class="board-city">{row.city}</span>}
+          </div>
+        ))}
+      </div>
+    )}
+
+    <!-- [6] CALLOUT -->
+    {article.callout && (
+      <div class="callout">
+        {article.callout.label && (
+          <span class="callout-label">{article.callout.label}</span>
+        )}
+        <span class="callout-text">{article.callout.text}</span>
+      </div>
+    )}
+
+    <!-- [7] PULL QUOTE -->
+    {article.quote && (
+      <blockquote class="pull-quote">
+        <p>{article.quote}</p>
+        {article.quoteAuthor && <cite>{article.quoteAuthor}</cite>}
+      </blockquote>
+    )}
+
+    <!-- [8] LEDE paragraph -->
+    {article.bodyHtml && (
+      <p class="story-body" set:html={article.bodyHtml} />
+    )}
+
+    <!-- [9] Read more CTA -->
+    {article.readMoreUrl && (
+      <a
+        href={article.readMoreUrl}
+        target="_blank"
+        rel="noopener noreferrer"
+        class="read-more"
+      >Czytaj dalej &rarr;</a>
+    )}
+
+  </div>
+</article>
+
+<style>
+  .story {
+    max-width: 980px;
+    margin: 0 auto;
+    border-bottom: 1px solid var(--concrete);
+  }
+
+  /* D. Section header */
+  .story-header {
+    display: flex;
+    align-items: flex-end;
+    gap: 20px;
+    padding: 48px 24px 16px;
+  }
+
+  .story-num {
+    font-family: 'Archivo Black', sans-serif;
+    font-size: 100px;
+    line-height: .85;
+    letter-spacing: -.04em;
+    flex-shrink: 0;
+    width: 120px;
+  }
+
+  .story-meta {
+    padding-bottom: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .story-badge {
+    display: inline-block;
+    font-family: 'Archivo Black', sans-serif;
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    padding: 6px 12px 7px;
+    line-height: 1;
+    align-self: flex-start;
+  }
+
+  .story-subtitle {
+    font-family: 'VT323', monospace;
+    font-size: 16px;
+    color: var(--fog);
+    text-transform: uppercase;
+    letter-spacing: .12em;
+  }
+
+  /* E. Article content */
+  .story-content { padding: 28px 24px 44px; }
+
+  /* [1] META dateline */
+  .story-dateline {
+    font-family: 'VT323', monospace;
+    font-size: 15px;
+    text-transform: uppercase;
+    letter-spacing: .1em;
+    color: var(--fog);
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .dl-date { color: var(--acid); }
+  .dl-sep  { color: var(--concrete); }
+  .dl-loc  { color: var(--chalk); }
+  .dl-tag  { color: var(--fog); }
+
+  /* [2] Headline */
+  .story-headline-link {
+    text-decoration: none;
+    color: inherit;
+    display: block;
+  }
+  .story-headline-link:hover .story-headline { color: var(--acid); }
+
+  .story-headline {
+    font-family: 'Archivo Black', sans-serif;
+    font-size: clamp(26px, 4vw, 38px);
+    line-height: 1.05;
+    letter-spacing: -.02em;
+    color: var(--white);
+    margin: 0 0 22px;
+    text-transform: uppercase;
+    max-width: 72ch;
+    transition: color .15s ease;
+  }
+
+  /* Inline colour swatches from the email HTML are preserved */
+  .story-headline :global(span[style*="background-color:#d4ff3a"]) {
+    background: var(--acid);
+    color: var(--bg);
+    padding: 2px 8px 4px;
+  }
+  .story-headline :global(span[style*="background-color:#ff2e6a"]) {
+    background: var(--magenta);
+    color: var(--white);
+    padding: 2px 8px 4px;
+  }
+  /* Underline-bar highlight from the template */
+  .story-headline :global(span[style*="background-image:linear-gradient"]) {
+    border-bottom: 3px solid var(--magenta);
+    background: none;
+    padding: 0;
+  }
+
+  /* [4] STATS GRID */
+  .stat-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    border: 1px solid var(--acid);
+    background: #1e1e1e;
+    margin-bottom: 22px;
+  }
+
+  .stat-cell {
+    padding: 16px 14px;
+    border-right: 1px solid var(--concrete);
+    font-family: 'VT323', monospace;
+  }
+  .stat-cell:last-child { border-right: none; }
+
+  .stat-val {
+    font-family: 'Archivo Black', sans-serif;
+    font-size: clamp(22px, 3vw, 32px);
+    line-height: 1;
+    letter-spacing: -.03em;
+    margin-bottom: 6px;
+  }
+  .stat-val.acid    { color: var(--acid); }
+  .stat-val.magenta { color: var(--magenta); }
+  .stat-val.white   { color: var(--white); }
+
+  .stat-label {
+    font-size: 14px;
+    color: var(--chalk);
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    line-height: 1.35;
+  }
+
+  /* [5] RANKING BOARD */
+  .board {
+    border: 1px solid var(--acid);
+    background: #1e1e1e;
+    margin-bottom: 22px;
+  }
+
+  .board-header {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 14px;
+    font-family: 'Archivo Black', sans-serif;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    font-weight: 900;
+  }
+
+  .board-row {
+    display: flex;
+    align-items: center;
+    padding: 7px 14px;
+    gap: 10px;
+  }
+  .board-row.zebra { background: #161616; }
+
+  .board-rank {
+    font-family: 'VT323', monospace;
+    font-size: 17px;
+    color: var(--magenta);
+    width: 42px;
+    flex-shrink: 0;
+  }
+
+  .board-team {
+    font-family: 'Archivo Black', sans-serif;
+    font-size: 16px;
+    color: var(--white);
+    text-transform: uppercase;
+    flex: 1;
+  }
+  .board-team.acid    { color: var(--acid); }
+  .board-team.magenta { color: var(--magenta); }
+
+  .board-city {
+    font-family: 'VT323', monospace;
+    font-size: 15px;
+    color: var(--fog);
+    text-transform: uppercase;
+    letter-spacing: .08em;
+  }
+
+  /* [6] CALLOUT */
+  .callout {
+    border: 2px dashed var(--acid);
+    background: #141a08;
+    padding: 14px 16px;
+    margin-bottom: 22px;
+    font-family: 'VT323', monospace;
+    font-size: 16px;
+    color: var(--chalk);
+    letter-spacing: .06em;
+    line-height: 1.5;
+  }
+
+  .callout-label {
+    display: inline-block;
+    background: var(--acid);
+    color: var(--bg);
+    font-family: 'Archivo Black', sans-serif;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    padding: 2px 8px 3px;
+    margin-right: 10px;
+    font-weight: 900;
+    vertical-align: middle;
+  }
+
+  .callout-text { vertical-align: middle; }
+
+  /* [7] PULL QUOTE */
+  .pull-quote {
+    background: var(--magenta);
+    margin: 0 0 22px;
+    padding: 22px 24px 24px;
+    border: none;
+  }
+
+  .pull-quote::before {
+    content: '\201C';
+    display: block;
+    font-family: 'Archivo Black', sans-serif;
+    font-size: 24px;
+    color: var(--acid);
+    line-height: 1;
+    margin-bottom: 8px;
+    font-weight: 900;
+  }
+
+  .pull-quote p {
+    font-family: 'Archivo Black', sans-serif;
+    font-size: clamp(18px, 2.5vw, 22px);
+    line-height: 1.15;
+    color: var(--white);
+    text-transform: uppercase;
+    letter-spacing: -.01em;
+    margin: 0 0 14px;
+  }
+
+  .pull-quote cite {
+    display: block;
+    font-family: 'VT323', monospace;
+    font-style: normal;
+    font-size: 15px;
+    text-transform: uppercase;
+    letter-spacing: .1em;
+    color: var(--white);
+    opacity: .75;
+  }
+  .pull-quote cite::before { content: '- '; }
+
+  /* [8] LEDE */
+  .story-body {
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 17px;
+    line-height: 1.65;
+    color: var(--chalk);
+    margin: 0 0 24px;
+    max-width: 72ch;
+  }
+
+  .story-body :global(strong) { color: var(--white); font-weight: 700; }
+  .story-body :global(span[style*="background-color:#d4ff3a"]) {
+    background: var(--acid);
+    color: var(--bg);
+    padding: 0 3px;
+    font-weight: 600;
+  }
+  .story-body :global(span[style*="#ff2e6a"]) { color: var(--magenta); font-weight: 600; }
+
+  /* [9] CTA */
+  .read-more {
+    display: inline-block;
+    padding: 15px 22px;
+    background: var(--acid);
+    color: var(--bg);
+    text-decoration: none;
+    font-family: 'Archivo Black', sans-serif;
+    font-size: 15px;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    border: 2px solid var(--acid);
+    transition: background .15s, color .15s;
+  }
+
+  .read-more:hover {
+    background: transparent;
+    color: var(--acid);
+  }
+
+  @media (max-width: 720px) {
+    .story-header { padding: 32px 16px 12px; gap: 14px; }
+    .story-num    { font-size: 72px; width: 88px; }
+    .story-content { padding: 20px 16px 36px; }
+
+    .stat-grid { grid-template-columns: 1fr; }
+    .stat-cell { border-right: none !important; border-bottom: 1px solid var(--concrete); }
+    .stat-cell:last-child { border-bottom: none; }
+  }
+</style>

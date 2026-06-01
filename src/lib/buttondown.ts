@@ -1,4 +1,5 @@
 import { parse as parseHtml } from 'node-html-parser';
+import { stripHtml, truncate, hasStorySubstance, parseCategoryLabel } from './seo';
 
 export interface Issue {
   id: string;
@@ -7,6 +8,7 @@ export interface Issue {
   title: string;
   description: string;
   topics: string[];
+  publishedAt: string; // raw ISO timestamp from Buttondown (for JSON-LD / sitemap)
   dateRange: string;
   weekTag: string;
   weekRange: string;
@@ -153,6 +155,7 @@ export async function getIssues(): Promise<Issue[]> {
       title: email.subject ?? '',
       description: email.description ?? '',
       topics: Array.isArray(email.tags) ? email.tags : [],
+      publishedAt: publishDate ?? '',
       dateRange: formatDateRange(publishDate),
       weekTag: weekTag(publishDate),
       weekRange: formatWeekRange(publishDate),
@@ -167,6 +170,61 @@ export async function getIssues(): Promise<Issue[]> {
   if (issues.length > 0) issues[0].isLatest = true;
 
   return issues;
+}
+
+/**
+ * Like getIssues(), but fills an excerpt (from the issue intro) for any issue
+ * whose Buttondown `description` is empty — so archive cards always have crawlable
+ * context. Costs one extra body fetch per description-less issue at build time.
+ */
+export async function getIssuesWithExcerpts(): Promise<Issue[]> {
+  const issues = await getIssues();
+  await Promise.all(
+    issues.map(async (issue) => {
+      if (issue.description.trim()) return;
+      try {
+        const content = await getIssueContent(issue.id);
+        const intro = stripHtml(content.introHtml);
+        if (intro) issue.description = truncate(intro, 160);
+      } catch (e) {
+        console.warn(`[buttondown] Could not derive excerpt for ${issue.slug}:`, e);
+      }
+    })
+  );
+  return issues;
+}
+
+export interface CategorySummary {
+  slug: string;
+  name: string;
+  emoji: string;
+  count: number;
+}
+
+/** Categories (from story badge labels) that have 2+ substantial stories, newest-weighted. */
+export async function getCategoryList(): Promise<CategorySummary[]> {
+  const issues = await getIssues();
+  const groups = new Map<string, CategorySummary>();
+  await Promise.all(
+    issues.map(async (issue) => {
+      try {
+        const { articles } = await getIssueContent(issue.id);
+        for (const article of articles) {
+          if (!hasStorySubstance(article)) continue;
+          const { emoji, name, slug } = parseCategoryLabel(article.categoryLabel);
+          if (!slug) continue;
+          const g = groups.get(slug);
+          if (g) g.count++;
+          else groups.set(slug, { slug, name, emoji, count: 1 });
+        }
+      } catch (e) {
+        console.warn(`[buttondown] category scan failed for ${issue.slug}:`, e);
+      }
+    })
+  );
+  return Array.from(groups.values())
+    .filter((g) => g.count >= 2)
+    .sort((a, b) => b.count - a.count);
 }
 
 export async function getIssueBody(id: string): Promise<string> {

@@ -1,0 +1,227 @@
+---
+import { getIssues, getIssueContent, type Issue } from '../../lib/buttondown';
+import {
+  storyUrl, stripHtml, hasStorySubstance, parseCategoryLabel, breadcrumbLd, absoluteUrl,
+} from '../../lib/seo';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import SerialStrip from '../../components/SerialStrip.astro';
+import Nav from '../../components/Nav.astro';
+import Footer from '../../components/Footer.astro';
+
+interface StoryItem {
+  headline: string;
+  url: string;
+  issueNumber: number;
+  dateRange: string;
+}
+
+export async function getStaticPaths() {
+  let issues: Issue[] = [];
+  try {
+    issues = await getIssues();
+  } catch (e) {
+    console.warn('[buttondown] API unavailable in category getStaticPaths:', e);
+    return [];
+  }
+  const latestNum = issues[0]?.number.toString().padStart(3, '0') ?? '-';
+
+  // Group substantial stories by their (clean) category, derived from the badge label.
+  const groups = new Map<string, { name: string; emoji: string; items: StoryItem[] }>();
+  for (const issue of issues) {
+    let articles = [];
+    try {
+      articles = (await getIssueContent(issue.id)).articles;
+    } catch (e) {
+      console.warn(`[buttondown] Could not fetch content for ${issue.slug}:`, e);
+      continue;
+    }
+    for (const article of articles) {
+      if (!hasStorySubstance(article)) continue;
+      const { emoji, name, slug } = parseCategoryLabel(article.categoryLabel);
+      if (!slug) continue;
+      if (!groups.has(slug)) groups.set(slug, { name, emoji, items: [] });
+      groups.get(slug)!.items.push({
+        headline: stripHtml(article.headlineHtml),
+        url: storyUrl(issue.slug, article),
+        issueNumber: issue.number,
+        dateRange: issue.dateRange,
+      });
+    }
+  }
+
+  // Only categories with 2+ stories get a page (avoid thin single-item pages).
+  return Array.from(groups.entries())
+    .filter(([, g]) => g.items.length >= 2)
+    .map(([slug, g]) => ({
+      params: { category: slug },
+      props: {
+        name: g.name,
+        emoji: g.emoji,
+        stories: g.items.sort((a, b) => b.issueNumber - a.issueNumber),
+        latestIssueNumber: latestNum,
+      },
+    }));
+}
+
+interface Props { name: string; emoji: string; stories: StoryItem[]; latestIssueNumber: string; }
+const { name, emoji, stories, latestIssueNumber } = Astro.props;
+
+const canonicalUrl = absoluteUrl(Astro.url.pathname);
+const pageTitle = `${name} — Padel Polska Weekly | UrbanPadel`;
+const pageDescription = `${name}: wszystkie historie z newslettera Padel Polska Weekly w kategorii ${name.toLowerCase()}. Polski padel co poniedziałek.`;
+
+const jsonLd = [
+  {
+    '@context': 'https://schema.org',
+    '@type': 'CollectionPage',
+    name,
+    url: canonicalUrl,
+    inLanguage: 'pl-PL',
+    mainEntity: {
+      '@type': 'ItemList',
+      itemListElement: stories.map((s, i) => ({
+        '@type': 'ListItem',
+        position: i + 1,
+        name: s.headline,
+        url: absoluteUrl(s.url),
+      })),
+    },
+  },
+  breadcrumbLd([
+    { name: 'Start', url: absoluteUrl('/') },
+    { name: 'Kategorie', url: absoluteUrl('/archiwum/') },
+    { name, url: canonicalUrl },
+  ]),
+];
+---
+
+<BaseLayout title={pageTitle} description={pageDescription} ogType="website" jsonLd={jsonLd}>
+  <SerialStrip latestIssueNumber={latestIssueNumber} />
+  <Nav />
+
+  <section class="cat-page">
+    <div class="cat-head">
+      <span class="cat-kicker">★ Kategoria</span>
+      <h1 class="cat-title">{emoji && <span class="cat-emoji">{emoji}</span>}{name}</h1>
+      <p class="cat-count">{stories.length} historii w tej kategorii</p>
+    </div>
+
+    <ul class="cat-list">
+      {stories.map((s) => (
+        <li class="cat-item">
+          <a href={s.url}>
+            <span class="cat-item-meta">Wydanie #{s.issueNumber.toString().padStart(3, '0')} · {s.dateRange}</span>
+            <span class="cat-item-headline">{s.headline}</span>
+          </a>
+        </li>
+      ))}
+    </ul>
+
+    <div class="cat-back">
+      <a href="/archiwum/">← Całe archiwum wydań</a>
+    </div>
+  </section>
+
+  <Footer latestIssueNumber={latestIssueNumber} />
+</BaseLayout>
+
+<style>
+  .cat-page { background: var(--bg); }
+
+  .cat-head {
+    max-width: 980px;
+    margin: 0 auto;
+    padding: 44px 24px 8px;
+  }
+
+  .cat-kicker {
+    display: inline-block;
+    background: var(--acid);
+    color: var(--bg);
+    font-family: 'Archivo Black', sans-serif;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+    padding: 5px 12px 6px;
+    margin-bottom: 16px;
+  }
+
+  .cat-title {
+    font-family: 'Archivo Black', sans-serif;
+    font-size: clamp(32px, 6vw, 56px);
+    line-height: 1;
+    letter-spacing: -.02em;
+    color: var(--white);
+    text-transform: uppercase;
+    margin: 0 0 10px;
+  }
+  .cat-emoji { margin-right: .35em; -webkit-text-fill-color: initial; }
+
+  .cat-count {
+    font-family: 'VT323', monospace;
+    font-size: 16px;
+    color: var(--fog);
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    margin: 0;
+  }
+
+  .cat-list {
+    max-width: 980px;
+    margin: 24px auto 0;
+    padding: 0 24px;
+    list-style: none;
+  }
+
+  .cat-item {
+    border-top: 1px solid var(--concrete);
+  }
+  .cat-item:last-child { border-bottom: 1px solid var(--concrete); }
+
+  .cat-item a {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 18px 0;
+    text-decoration: none;
+    color: var(--chalk);
+    transition: color .15s ease;
+  }
+  .cat-item a:hover { color: var(--acid); }
+
+  .cat-item-meta {
+    font-family: 'VT323', monospace;
+    font-size: 14px;
+    color: var(--fog);
+    text-transform: uppercase;
+    letter-spacing: .1em;
+  }
+
+  .cat-item-headline {
+    font-family: 'Archivo Black', sans-serif;
+    font-size: clamp(18px, 2.6vw, 24px);
+    line-height: 1.15;
+    letter-spacing: -.01em;
+    color: var(--white);
+    text-transform: uppercase;
+  }
+  .cat-item a:hover .cat-item-headline { color: var(--acid); }
+
+  .cat-back {
+    max-width: 980px;
+    margin: 0 auto;
+    padding: 28px 24px 64px;
+    font-family: 'VT323', monospace;
+    font-size: 16px;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+  }
+  .cat-back a { color: var(--acid); text-decoration: none; }
+  .cat-back a:hover { text-decoration: underline; text-underline-offset: 3px; }
+
+  @media (max-width: 720px) {
+    .cat-head { padding: 36px 16px 8px; }
+    .cat-list { padding: 0 16px; }
+    .cat-back { padding: 24px 16px 48px; }
+  }
+</style>

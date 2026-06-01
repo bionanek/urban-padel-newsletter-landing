@@ -1,0 +1,201 @@
+---
+import { getIssuesWithExcerpts, getCategoryList, type Issue, type CategorySummary } from '../lib/buttondown';
+import { breadcrumbLd, absoluteUrl } from '../lib/seo';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import SerialStrip from '../components/SerialStrip.astro';
+import Nav from '../components/Nav.astro';
+import IssueCard from '../components/IssueCard.astro';
+import Footer from '../components/Footer.astro';
+
+let issues: Issue[] = [];
+let categories: CategorySummary[] = [];
+try {
+  [issues, categories] = await Promise.all([getIssuesWithExcerpts(), getCategoryList()]);
+} catch (e) {
+  console.warn('[buttondown] API unavailable for /archiwum:', e);
+}
+
+const latestDisplay = issues.length > 0 ? issues[0].number.toString().padStart(3, '0') : '-';
+
+const jsonLd = [
+  breadcrumbLd([
+    { name: 'Start', url: absoluteUrl('/') },
+    { name: 'Archiwum wydań', url: absoluteUrl('/archiwum/') },
+  ]),
+];
+---
+
+<BaseLayout
+  title="Archiwum wydań — Padel Polska Weekly | UrbanPadel"
+  description="Wszystkie wydania newslettera Padel Polska Weekly: turnieje, kluby, rankingi FIP/PZP i ludzie polskiego padla. Pełne archiwum drops."
+  ogType="website"
+  jsonLd={jsonLd}
+>
+  <SerialStrip latestIssueNumber={latestDisplay} />
+  <Nav />
+
+  <section class="archive-page">
+    <div class="sechead">
+      <span class="cat">★ Archiwum wydań</span>
+      <span class="slash">// wszystkie drops</span>
+    </div>
+
+    <div class="archive">
+      <h1 class="archive-title">Archiwum Padel Polska Weekly</h1>
+
+      {categories.length > 0 && (
+        <nav class="cat-nav" aria-label="Przeglądaj według kategorii">
+          <span class="cat-nav-label">Kategorie:</span>
+          {categories.map((c) => (
+            <a class="cat-chip" href={`/kategoria/${c.slug}/`}>
+              {c.emoji && <span>{c.emoji}</span>}{c.name} <span class="cat-chip-n">{c.count}</span>
+            </a>
+          ))}
+        </nav>
+      )}
+
+      <div class="archive-toolbar">
+        <div><span class="count">{latestDisplay}</span> wydań w archiwum</div>
+      </div>
+
+      {issues.length > 0 ? (
+        <div class="archive-grid">
+          {issues.map((issue) => <IssueCard issue={issue} />)}
+        </div>
+      ) : (
+        <p class="no-issues">Archiwum jest tymczasowo niedostępne.</p>
+      )}
+    </div>
+  </section>
+
+  <Footer latestIssueNumber={latestDisplay} />
+</BaseLayout>
+
+<style>
+  .archive-page {
+    background: var(--bg);
+  }
+
+  .sechead {
+    max-width: 980px;
+    margin: 0 auto;
+    padding: 44px 24px 16px;
+    display: grid;
+    grid-template-columns: auto 1fr;
+    column-gap: 20px;
+    align-items: center;
+  }
+
+  .cat {
+    background: var(--acid);
+    color: var(--bg);
+    font-family: 'Archivo Black', sans-serif;
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: .02em;
+    padding: 6px 12px 7px;
+    justify-self: start;
+    align-self: center;
+  }
+
+  .sechead .slash {
+    font-family: 'VT323', monospace;
+    font-size: 16px;
+    color: var(--fog);
+    text-transform: uppercase;
+    letter-spacing: .12em;
+    justify-self: end;
+    align-self: center;
+    padding-left: 20px;
+  }
+
+  .archive {
+    max-width: 980px;
+    margin: 0 auto;
+    padding: 10px 24px 96px;
+  }
+
+  .archive-title {
+    font-family: 'Archivo Black', sans-serif;
+    font-size: clamp(28px, 5vw, 44px);
+    line-height: 1.02;
+    letter-spacing: -.02em;
+    color: var(--white);
+    text-transform: uppercase;
+    margin: 0 0 8px;
+  }
+
+  .cat-nav {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+    margin: 14px 0 4px;
+  }
+
+  .cat-nav-label {
+    font-family: 'VT323', monospace;
+    font-size: 15px;
+    color: var(--fog);
+    text-transform: uppercase;
+    letter-spacing: .1em;
+  }
+
+  .cat-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    border: 1px solid var(--concrete);
+    color: var(--chalk);
+    text-decoration: none;
+    padding: 5px 11px 6px;
+    font-family: 'VT323', monospace;
+    font-size: 15px;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    transition: border-color .15s ease, color .15s ease;
+  }
+  .cat-chip:hover { border-color: var(--acid); color: var(--acid); }
+  .cat-chip-n { color: var(--fog); }
+  .cat-chip:hover .cat-chip-n { color: var(--acid); }
+
+  .archive-toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0 18px;
+    border-bottom: 1px dashed var(--concrete);
+    margin-bottom: 22px;
+    font-family: 'VT323', monospace;
+    font-size: 16px;
+    color: var(--fog);
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .count {
+    color: var(--acid);
+  }
+
+  .archive-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 18px;
+  }
+
+  .no-issues {
+    font-family: 'VT323', monospace;
+    color: var(--fog);
+    text-transform: uppercase;
+    letter-spacing: .08em;
+  }
+
+  @media (max-width: 720px) {
+    .sechead { padding: 36px 16px 14px; column-gap: 14px; }
+    .sechead .slash { padding-left: 8px; }
+    .archive { padding: 6px 16px 64px; }
+    .archive-grid { grid-template-columns: 1fr; }
+  }
+</style>
